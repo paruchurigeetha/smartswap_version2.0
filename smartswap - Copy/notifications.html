@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Notifications - SmartSwap</title>
+  
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body class="container mt-4 animate-fade-in">
+
+<!-- HEADER -->
+<div class="d-flex align-items-center mb-4 gap-3">
+  <button class="btn btn-light rounded-circle p-2" style="width:45px; height:45px;" onclick="window.history.back()">
+    ⬅️
+  </button>
+  <h3 class="fw-bold mb-0 text-warning">🔔 Notifications</h3>
+</div>
+
+<div class="row">
+  <div class="col-md-8 col-lg-6 mx-auto" id="notiBox">
+    <!-- Notifications injected here -->
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyDY-2fpS9LqM8f92TOuHPpJO4FJuDOcp4U",
+  authDomain: "smartswap-5176e.firebaseapp.com",
+  projectId: "smartswap-5176e"
+};
+
+firebase.initializeApp(firebaseConfig);
+
+let currentUser;
+
+firebase.auth().onAuthStateChanged(user => {
+  if (user) {
+    currentUser = user.email;
+    loadNotifications();
+  } else {
+    window.location.href = "login.html";
+  }
+});
+
+// LOAD NOTIFICATIONS
+function loadNotifications() {
+  const box = document.getElementById("notiBox");
+
+  firebase.firestore().collection("notifications")
+    .orderBy("time", "desc")
+    .onSnapshot(snapshot => {
+
+      box.innerHTML = "";
+      let grouped = {};
+
+      snapshot.forEach(doc => {
+        const n = doc.data();
+
+        if (n.to !== currentUser) return;
+
+        // 🔥 create unique key
+        const key = n.from + "_" + n.itemId;
+
+        if (!grouped[key]) {
+          grouped[key] = {
+            from: n.from,
+            itemId: n.itemId,
+            itemName: n.itemName,
+            count: 0,
+            lastMessage: ""
+          };
+        }
+
+        if (!n.seen) {
+          grouped[key].count++;
+        }
+        grouped[key].lastMessage = n.message;
+      });
+
+      const notiList = Object.values(grouped);
+
+      if (notiList.length === 0) {
+        box.innerHTML = `
+          <div class="glass-panel p-5 text-center mt-5">
+            <h4 class="fw-bold">No new notifications 🎉</h4>
+            <p class="text-muted mb-0">You're all caught up!</p>
+          </div>
+        `;
+        return;
+      }
+
+      // 🔥 show grouped notifications
+      notiList.forEach((n, index) => {
+        const delay = (index + 1) * 100;
+        const unseenBadge = n.count > 0 ? `<span class="badge bg-danger rounded-pill">${n.count} new</span>` : '';
+        
+        box.innerHTML += `
+          <div class="glass-panel p-4 mb-3 animate-fade-in" style="animation-delay: ${delay}ms; cursor:pointer;"
+            onclick='openChat("${n.itemId}", "${n.from}", "${n.itemName}")'>
+            
+            <div class="d-flex align-items-center gap-3">
+              <div class="bg-warning text-white rounded-circle d-flex justify-content-center align-items-center fs-4 fw-bold shadow-sm" style="width: 50px; height: 50px;">
+                🔔
+              </div>
+              <div class="flex-grow-1">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                  <h6 class="fw-bold mb-0">${n.from}</h6>
+                  ${unseenBadge}
+                </div>
+                <p class="fw-semibold text-primary mb-1">${n.itemName}</p>
+                <p class="text-muted mb-0 text-truncate" style="max-width: 250px;">${n.lastMessage}</p>
+              </div>
+            </div>
+
+          </div>
+        `;
+      });
+
+    });
+}
+
+// OPEN CHAT
+function openChat(itemId, user, itemName) {
+  localStorage.setItem("chatItemId", itemId);
+  localStorage.setItem("chatUser", user);
+  localStorage.setItem("chatItem", JSON.stringify({
+    name: itemName
+  }));
+
+  // ✅ WAIT FOR UPDATE
+  firebase.firestore().collection("notifications")
+    .where("to", "==", currentUser)
+    .where("itemId", "==", itemId)
+    .where("from", "==", user)
+    .get()
+    .then(snapshot => {
+
+      const promises = [];
+
+      snapshot.forEach(doc => {
+        promises.push(doc.ref.update({ seen: true }));
+      });
+
+      // 🔥 WAIT FOR ALL UPDATES
+      return Promise.all(promises);
+    })
+    .then(() => {
+      // ✅ NAVIGATE AFTER UPDATE
+      window.location.href = "chat.html";
+    });
+}
+</script>
+
+</body>
+</html>

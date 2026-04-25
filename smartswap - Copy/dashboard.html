@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SmartSwap Dashboard</title>
+  
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+<div id="loader" style="
+  position:fixed;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+  background:white;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  z-index:9999;
+">
+
+  <div class="spinner-border text-success" style="width:3rem;height:3rem;"></div>
+
+</div>
+<!-- NAVBAR -->
+<nav class="navbar navbar-expand-lg glass-nav sticky-top px-3">
+  <div class="container-fluid">
+
+    <!-- LOGO -->
+    <span class="navbar-brand d-flex align-items-center gap-2">
+      <img src="icon.jpg" width="35" height="35" style="border-radius: 10px;" alt="">
+      SmartSwap
+    </span>
+
+    <!-- RIGHT SIDE -->
+    <div class="ms-auto d-flex flex-wrap align-items-center gap-2">
+
+      <!-- USER EMAIL -->
+      <span id="userEmail" class="text-muted small fw-medium me-2 d-none d-md-block"></span>
+
+      <!-- ❤️ WISHLIST -->
+      <button class="btn btn-light rounded-circle p-2" style="width: 40px; height: 40px;" onclick="goWishlist()" title="Wishlist">
+        ❤️
+      </button>
+
+      <!-- 🔔 NOTIFICATIONS -->
+      <button class="btn btn-light position-relative rounded-circle p-2" style="width: 40px; height: 40px;" onclick="goNotifications()" title="Notifications">
+        🔔
+        <span id="notiCount"
+          class="position-absolute translate-middle badge rounded-pill bg-danger"
+          style="top: 5px; right: -10px; display: none;">
+        </span>
+      </button>
+
+      <!-- 💬 CHAT -->
+      <button class="btn btn-light rounded-circle p-2" style="width: 40px; height: 40px;" onclick="goChats()" title="Chats">
+        💬
+      </button>
+
+      <!-- 👤 MY ITEMS -->
+      <button class="btn btn-light rounded-pill px-3 fw-semibold" onclick="goMyItems()">
+        👤 My Items
+      </button>
+      
+      <button class="btn btn-light rounded-circle p-2" style="width: 40px; height: 40px;" onclick="toggleDarkMode()" title="Toggle Dark Mode">
+        🌙
+      </button>
+
+    </div>
+
+  </div>
+</nav>
+
+<div class="container-fluid px-4 mt-4 animate-fade-in delay-100">
+  <div class="row">
+    <!-- Sidebar / Filters -->
+    <div class="col-lg-3 col-md-4 mb-4">
+      <div class="glass-panel p-4 sticky-top" style="top: 80px; z-index: 10;">
+        <h5 class="fw-bold mb-3">Filters 🔍</h5>
+        
+        <input id="search" class="form-control mb-3" placeholder="Search items..." onkeyup="searchItems()">
+        
+        <select id="collegeFilter" class="form-select mb-3" onchange="changeCollege()">
+          <option value="">All Colleges</option>
+          <option>Lendi Institute of Engineering and Technology</option>
+          <option>MVGR College of Engineering</option>
+          <option>Raghu Engineering College</option>
+          <option>Aditya Engineering College</option>
+          <option>Pragati Engineering College</option>
+          <option>GITAM University</option>
+          <option>ANITS Vizag</option>
+          <option>Vignan University</option>
+          <option>JNTU Kakinada</option>
+          <option>JNTU Hyderabad</option>
+          <option>CBIT Hyderabad</option>
+          <option>SRM University</option>
+          <option>VIT Vellore</option>
+          <option>KL University</option>
+          <option>Amrita University</option>
+          <option>Osmania University</option>
+          <option>Andhra University</option>
+          <option>Delhi University</option>
+          <option>IIT Hyderabad</option>
+          <option>NIT Warangal</option>
+          <option>IIIT Hyderabad</option>
+          <option>Manipal University</option>
+          <option>BITS Pilani</option>
+          <option>Lovely Professional University</option>
+          <option>Christ University</option>
+        </select>
+
+        <h6 class="fw-bold mt-4 mb-2">Price Range 💰</h6>
+        <input id="minPrice" type="number" class="form-control mb-2" placeholder="Min Price">
+        <input id="maxPrice" type="number" class="form-control mb-3" placeholder="Max Price">
+        <button class="btn btn-success w-100 mb-2" onclick="applyPriceFilter()">Apply Filter</button>
+        <button class="btn btn-light w-100" onclick="loadItems()">Reset Filter 🔄</button>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="col-lg-9 col-md-8">
+      
+      <!-- POST ITEM -->
+      <div class="glass-panel p-4 mb-4">
+        <h5 class="mb-3 fw-bold text-success">Sell Your Item 🛒</h5>
+        <div class="row g-3">
+          <div class="col-md-6">
+            <input id="itemName" class="form-control" placeholder="📦 Enter item name">
+          </div>
+          <div class="col-md-6">
+            <input type="file" id="imageFile" class="form-control">
+          </div>
+          <div class="col-md-6">
+            <input id="mrp" type="number" class="form-control" placeholder="💰 Original price (MRP)">
+          </div>
+          <div class="col-md-6">
+            <input id="price" type="number" class="form-control" placeholder="🏷 Selling price">
+          </div>
+          <div class="col-12 mt-2">
+            <button class="btn btn-success w-100 fw-semibold" onclick="addItem()">🚀 Post Item</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ITEMS -->
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 id="collegeName" class="fw-bold mb-0 text-primary"></h4>
+      </div>
+      
+      <div id="itemsContainer" class="row"></div>
+    </div>
+  </div>
+</div>
+
+<!-- FIREBASE -->
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
+<script>
+  let currentUser;
+const firebaseConfig = {
+  apiKey: "AIzaSyDY-2fpS9LqM8f92TOuHPpJO4FJuDOcp4U",
+  authDomain: "smartswap-5176e.firebaseapp.com",
+  projectId: "smartswap-5176e"
+};
+
+firebase.initializeApp(firebaseConfig);
+// SHOW COLLEGE
+document.getElementById("collegeName").innerText =
+  "Showing All College Items 🛍️";
+
+// AUTH
+firebase.auth().onAuthStateChanged(user => {
+  if (user) {
+    currentUser = user.email; 
+    document.getElementById("userEmail").innerText = user.email;
+    loadItems();
+    loadNotificationCount(); // 🔥 ADD THIS
+    //checkMessages();
+  } else {
+    window.location.href = "login.html";
+  }
+});
+function openNotifications() {
+  window.location.href = "notifications.html";
+}
+
+// ADD ITEM
+function addItem() {
+  const name = document.getElementById("itemName").value.trim();
+  const mrpValue = document.getElementById("mrp").value.trim();
+  const priceValue = document.getElementById("price").value.trim();
+  const file = document.getElementById("imageFile").files[0]; // 🔥 changed
+  const user = firebase.auth().currentUser;
+
+  if (!name || !mrpValue || !priceValue || !file) {
+    alert("Fill all fields and select image");
+    return;
+  }
+
+  const reader = new FileReader();
+
+  reader.onloadend = function () {
+    const base64Image = reader.result;
+
+    firebase.firestore().collection("items").add({
+      name: name,
+      mrp: mrpValue,
+      price: priceValue,
+      image: base64Image, // 🔥 store uploaded image
+      college: document.getElementById("collegeFilter").value || "General",
+      owner: user.email,
+      createdAt: new Date()
+    })
+    .then(() => {
+      alert("Item Posted ✅");
+
+      // clear fields
+      document.getElementById("itemName").value = "";
+      document.getElementById("mrp").value = "";
+      document.getElementById("price").value = "";
+      document.getElementById("imageFile").value = "";
+
+      loadItems(); // reload
+    })
+    .catch(err => {
+      console.log(err);
+      alert("Error: " + err.message);
+    });
+  };
+
+  reader.readAsDataURL(file); // 🔥 convert file to base64
+}
+// LOAD ITEMS
+function loadItems(selectedCollege = "") {
+  const container = document.getElementById("itemsContainer");
+  container.innerHTML = "";
+
+  const userEmail = firebase.auth().currentUser.email;
+
+  let query = firebase.firestore().collection("items");
+
+  // ✅ FILTER AT DATABASE LEVEL (FAST)
+  if (selectedCollege) {
+    query = query.where("college", "==", selectedCollege);
+  }
+
+  query.onSnapshot(snapshot => {
+
+    container.innerHTML = ""; // clear again
+
+    snapshot.forEach(doc => {
+      const item = doc.data();
+
+      container.innerHTML += `
+     <div class="col-lg-4 col-md-6 col-sm-12 item-card mb-4 animate-fade-in delay-200" style="cursor:pointer" onclick="openProduct('${doc.id}')">
+        <div class="card h-100">
+          <div style="overflow:hidden; position:relative;">
+            <img src="${item.image}" onerror="this.src='https://via.placeholder.com/300?text=No+Image';" style="height:220px;width:100%;object-fit:cover;">
+            <div class="position-absolute top-0 end-0 m-2 px-2 py-1 bg-white rounded-pill shadow-sm" style="font-size: 0.8rem; font-weight: 600; color: var(--primary);">
+              ✨ Fresh
+            </div>
+          </div>
+          <div class="card-body d-flex flex-column p-4">
+            <h5 class="fw-bold text-truncate mb-1">${item.name}</h5>
+            <div class="d-flex align-items-center mb-3">
+              <h5 class="text-success fw-bold mb-0 me-2">₹${item.price}</h5>
+              <small class="text-muted text-decoration-line-through">₹${item.mrp}</small>
+            </div>
+            <p class="text-muted small mb-3">
+              <span class="me-1">📍</span>${item.college}
+            </p>
+            <div class="mt-auto d-flex gap-2">
+            ${
+              item.owner === userEmail
+              ? `
+                <button class="btn btn-warning flex-grow-1" onclick='event.stopPropagation(); editItem("${doc.id}", ${JSON.stringify(item)})'>✏ Edit</button>
+                <button class="btn btn-danger flex-grow-1" onclick='event.stopPropagation(); deleteItem("${doc.id}")'>🗑 Delete</button>
+              `
+              : `
+                <button class="btn btn-primary flex-grow-1" onclick='event.stopPropagation(); startChat("${doc.id}", ${JSON.stringify(item)})'>🛒 Buy</button>
+                <button class="btn btn-light px-3" onclick='event.stopPropagation(); addToWishlist(${JSON.stringify(item)}, "${doc.id}")'>❤️</button>
+              `
+            }
+            </div>
+          </div>
+        </div>
+      </div>
+      `;
+    });
+
+    // ✅ EMPTY STATE (ADDED HERE CORRECTLY)
+    if (container.innerHTML === "") {
+      container.innerHTML = `
+        <div class="text-center mt-5">
+          <h5>No items found 😔</h5>
+          <p class="text-muted">Try changing college or search</p>
+        </div>
+      `;
+    }
+
+  });
+}
+// FUNCTIONS
+function deleteItem(id) {
+  firebase.firestore().collection("items").doc(id).delete().then(loadItems);
+}
+
+function editItem(id, item) {
+  const newPrice = prompt("Enter new price:", item.price);
+  if (newPrice) {
+    firebase.firestore().collection("items").doc(id).update({ price: newPrice })
+    .then(loadItems);
+  }
+}
+
+function startChat(id, item) {
+  localStorage.setItem("chatItem", JSON.stringify(item));
+  localStorage.setItem("chatItemId", id);
+  localStorage.setItem("chatUser", item.owner); // 🔥 IMPORTANT
+  window.location.href = "chat.html";
+}
+
+function viewItem(item) {
+  localStorage.setItem("selectedItem", JSON.stringify(item));
+  window.location.href = "itemDetails.html";
+}
+
+function addToWishlist(item, id) {
+  let w = JSON.parse(localStorage.getItem("wishlist")) || [];
+
+  // ✅ CHECK DUPLICATE
+  if (w.some(i => i.id === id)) {
+    alert("Already in wishlist ❤️");
+    return;
+  }
+
+  w.push({ ...item, id });
+
+  localStorage.setItem("wishlist", JSON.stringify(w));
+
+  alert("Added to wishlist ❤️");
+}
+
+function searchItems() {
+  const value = document.getElementById("search").value.toLowerCase();
+
+  document.querySelectorAll(".item-card").forEach(card => {
+    const name = card.querySelector(".item-name").innerText.toLowerCase();
+
+    if (name.includes(value)) {
+      card.style.display = "block";
+    } else {
+      card.style.display = "none";
+    }
+  });
+}
+
+function changeCollege() {
+  const selected = document.getElementById("collegeFilter").value;
+
+  if (!selected) {
+    loadItems(); // show all
+  } else {
+    loadItems(selected); // filter
+  }
+}
+function applyPriceFilter() {
+  const min = parseInt(document.getElementById("minPrice").value) || 0;
+  const max = parseInt(document.getElementById("maxPrice").value) || Infinity;
+
+  loadItemsByPrice(min, max);
+}
+function goWishlist() {
+  window.location.href = "wishlist.html";
+}
+function goNotifications() {
+  window.location.href = "notifications.html";
+}
+function loadNotificationCount() {
+
+  firebase.firestore().collection("notifications")
+    .onSnapshot(snapshot => {
+
+      let count = 0;
+
+      snapshot.forEach(doc => {
+        const n = doc.data();
+
+        // ✅ ONLY UNSEEN FOR CURRENT USER
+        if (n.to === currentUser && !n.seen) {
+          count++;
+        }
+      });
+
+      const badge = document.getElementById("notiCount");
+
+      if (count > 0) {
+        badge.style.display = "block";
+        badge.innerText = count;
+      } else {
+        badge.style.display = "none";
+      }
+
+    });
+}
+function goChats() {
+  window.location.href = "chatList.html";
+}
+function goMyItems() {
+  window.location.href = "myitems.html";
+}
+function openProduct(id) {
+  firebase.firestore().collection("items").doc(id).get()
+    .then(doc => {
+      if (doc.exists) {
+        const item = doc.data();
+
+        localStorage.setItem("selectedItem", JSON.stringify({
+          ...item,
+          id: doc.id
+        }));
+
+        window.location.href = "product.html";
+      }
+    });
+}
+function loadItemsByPrice(min, max) {
+  const container = document.getElementById("itemsContainer");
+  container.innerHTML = "";
+
+  const userEmail = firebase.auth().currentUser.email;
+
+  firebase.firestore().collection("items")
+    .onSnapshot(snapshot => {
+
+      container.innerHTML = "";
+
+      snapshot.forEach(doc => {
+        const item = doc.data();
+        const price = parseInt(item.price);
+
+        // ✅ PRICE FILTER
+        if (price < min || price > max) return;
+
+        container.innerHTML += `
+     <div class="col-lg-4 col-md-6 col-sm-12 item-card mb-4 animate-fade-in delay-200" style="cursor:pointer" onclick="openProduct('${doc.id}')">
+        <div class="card h-100">
+          <div style="overflow:hidden; position:relative;">
+            <img src="${item.image}" onerror="this.src='https://via.placeholder.com/300?text=No+Image';" style="height:220px;width:100%;object-fit:cover;">
+            <div class="position-absolute top-0 end-0 m-2 px-2 py-1 bg-white rounded-pill shadow-sm" style="font-size: 0.8rem; font-weight: 600; color: var(--primary);">
+              ✨ Fresh
+            </div>
+          </div>
+          <div class="card-body d-flex flex-column p-4">
+            <h5 class="fw-bold text-truncate mb-1">${item.name}</h5>
+            <div class="d-flex align-items-center mb-3">
+              <h5 class="text-success fw-bold mb-0 me-2">₹${item.price}</h5>
+              <small class="text-muted text-decoration-line-through">₹${item.mrp}</small>
+            </div>
+            <p class="text-muted small mb-3">
+              <span class="me-1">📍</span>${item.college}
+            </p>
+            <div class="mt-auto d-flex gap-2">
+                <button class="btn btn-primary flex-grow-1" onclick='event.stopPropagation(); startChat("${doc.id}", ${JSON.stringify(item)})'>🛒 Buy</button>
+                <button class="btn btn-light px-3" onclick='event.stopPropagation(); addToWishlist(${JSON.stringify(item)}, "${doc.id}")'>❤️</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      `;
+      });
+
+      // ✅ EMPTY STATE
+      if (container.innerHTML === "") {
+        container.innerHTML = `
+          <div class="text-center mt-5">
+            <h5>No items in this price range 😔</h5>
+          </div>
+        `;
+      }
+
+    });
+}
+function toggleDarkMode() {
+  document.body.classList.toggle("dark-mode");
+
+  // save preference
+  if (document.body.classList.contains("dark-mode")) {
+    localStorage.setItem("theme", "dark");
+  } else {
+    localStorage.setItem("theme", "light");
+  }
+}
+
+// LOAD SAVED MODE
+window.onload = () => {
+  const theme = localStorage.getItem("theme");
+
+  if (theme === "dark") {
+    document.body.classList.add("dark-mode");
+  }
+};
+loadItems(); // show all items first
+</script>
+<script>
+  // 🔥 AUTO HIDE LOADER (FAST FEEL)
+  window.addEventListener("load", () => {
+    setTimeout(() => {
+      const loader = document.getElementById("loader");
+      if (loader) loader.style.display = "none";
+    }, 800); // 0.8 sec only
+  });
+  document.body.style.opacity = 0;
+  window.onload = () => {
+    document.body.style.transition = "0.5s";
+    document.body.style.opacity = 1;
+  };
+  function searchItems() {
+  const text = document.getElementById("search").value.toLowerCase();
+
+  firebase.firestore().collection("items")
+    .onSnapshot(snapshot => {
+
+      const container = document.getElementById("itemsContainer");
+      container.innerHTML = "";
+
+      snapshot.forEach(doc => {
+        const item = doc.data();
+
+        // ✅ FILTER BY NAME
+        if (!item.name.toLowerCase().includes(text)) return;
+
+        container.innerHTML += createItemCard(item, doc.id);
+      });
+
+    });
+}
+function createItemCard(item, id) {
+
+  return `
+  <div class="col-lg-4 col-md-6 col-sm-12 item-card mb-4 animate-fade-in delay-200" style="cursor:pointer" onclick="openProduct('${id}')">
+    <div class="card h-100">
+      <div style="overflow:hidden; position:relative;">
+        <img src="${item.image}" onerror="this.src='https://via.placeholder.com/300?text=No+Image';" style="height:220px;width:100%;object-fit:cover;">
+        <div class="position-absolute top-0 end-0 m-2 px-2 py-1 bg-white rounded-pill shadow-sm" style="font-size: 0.8rem; font-weight: 600; color: var(--primary);">
+          ✨ Fresh
+        </div>
+      </div>
+      <div class="card-body d-flex flex-column p-4">
+        <h5 class="fw-bold text-truncate mb-1">${item.name}</h5>
+        <div class="d-flex align-items-center mb-3">
+          <h5 class="text-success fw-bold mb-0 me-2">₹${item.price}</h5>
+          <small class="text-muted text-decoration-line-through">₹${item.mrp}</small>
+        </div>
+        <p class="text-muted small mb-3">
+          <span class="me-1">📍</span>${item.college}
+        </p>
+        <div class="mt-auto d-flex gap-2">
+            <button class="btn btn-primary flex-grow-1" onclick='event.stopPropagation(); startChat("${id}", ${JSON.stringify(item)})'>🛒 Buy</button>
+            <button class="btn btn-light px-3" onclick='event.stopPropagation(); addToWishlist(${JSON.stringify(item)}, "${id}")'>❤️</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  `;
+}
+</script>
+</body>
+</html>
